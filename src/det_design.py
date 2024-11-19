@@ -1,74 +1,81 @@
-from machine import Pin, PWM
+from machine import Pin
 import time
 
-# Set the minimum duty cycle in milliseconds
-servo_min_duty = 1000
-servo_max_duty = 65000
-angle_range = 180
+# Constants for LED brightness levels (for visual feedback)
+MIN_BRIGHTNESS = 0
+MAX_BRIGHTNESS = 65535
+ANGLE_RANGE = 180
 
 def initialize():
-    # Initialize the PWM controller
-    pwm = {
-        "shoulder": PWM(Pin(15)),
-        "elbow": PWM(Pin(16)),
-        "pen_up_down": PWM(Pin(17))
-    }
-    for servo in pwm.values():
-        servo.freq(50)  # sets our frequency to servo specs
-    return pwm
-
-def move_servos(shoulder_angle, elbow_angle, pen_position, pwm):
     """
-    Move servos to specified angles using PWM channels.
+    Initialize GPIO pins for LEDs instead of PWM for servos.
+    Returns a dictionary of LED pin objects.
+    """
+    leds = {
+        "shoulder": Pin(15, Pin.OUT),  # LED for shoulder movement
+        "elbow": Pin(16, Pin.OUT),     # LED for elbow movement
+        "pen_up_down": Pin(17, Pin.OUT) # LED for pen position
+    }
+    return leds
+
+def simulate_movement(shoulder_angle, elbow_angle, pen_position, leds):
+    """
+    Simulate servo movement using LEDs.
     
     Parameters:
-        shoulder_angle (int): Target angle for the first shoulder servo.
-        elbow_angle (int): Target angle for the elbow servo.
+        shoulder_angle (int): Target angle for the shoulder movement
+        elbow_angle (int): Target angle for the elbow movement
         pen_position (bool): True for pen down, False for pen up
-        pwm (PWM object): The PWM controller to generate signals for servos.
+        leds (dict): Dictionary containing LED Pin objects
     """
-    # Convert angles to duty cycles
-    shoulder_duty = angle_to_duty_cycle(shoulder_angle)
-    elbow_duty = angle_to_duty_cycle(elbow_angle)
-    
-    # Move the shoulder and elbow servos to their specified angle
-    pwm["shoulder"].duty_u16(shoulder_duty)
-    pwm["elbow"].duty_u16(elbow_duty)
-    
-    # Control the pen servo (up or down)
-    if pen_position:
-        # Pen down (move servo to position to draw)
-        pwm["pen_up_down"].duty_u16(servo_max_duty)
+    # Shoulder movement simulation
+    if shoulder_angle > 0:
+        leds["shoulder"].value(1)  # Turn LED on
+        print(f"Shoulder LED ON - Angle: {shoulder_angle}")
     else:
-        # Pen up (move servo to position to lift pen)
-        pwm["pen_up_down"].duty_u16(servo_min_duty)
+        leds["shoulder"].value(0)  # Turn LED off
+        print(f"Shoulder LED OFF - Angle: {shoulder_angle}")
+    
+    # Elbow movement simulation
+    if elbow_angle > 0:
+        leds["elbow"].value(1)  # Turn LED on
+        print(f"Elbow LED ON - Angle: {elbow_angle}")
+    else:
+        leds["elbow"].value(0)  # Turn LED off
+        print(f"Elbow LED OFF - Angle: {elbow_angle}")
+    
+    # Pen position simulation
+    if pen_position:
+        leds["pen_up_down"].value(1)  # Turn LED on for pen down
+        print("Pen LED ON - Pen Down")
+    else:
+        leds["pen_up_down"].value(0)  # Turn LED off for pen up
+        print("Pen LED OFF - Pen Up")
 
-def angle_to_duty_cycle(angle):
-    # Map the angle to the corresponding duty cycle within the servo's range
-    duty_cycle = int((angle / angle_range) * (servo_max_duty - servo_min_duty) + servo_min_duty)
-    return duty_cycle
+    # Add a small delay to make LED changes visible
+    time.sleep(0.1)
 
 if __name__ == "__main__":
-    pwm = initialize()
+    leds = initialize()
     
-    # Test moving servos to specific positions
+    # Test LED patterns
     while True:
-        # Move shoulder and elbow to 90 degrees, pen down
-        print("Moving to 90, 90 with pen down")
-        move_servos(90, 90, True, pwm)
+        # Simulate shoulder and elbow at 90 degrees, pen down
+        print("\nSimulating position: 90, 90, pen down")
+        simulate_movement(90, 90, True, leds)
         time.sleep(2)
         
-        # Move shoulder and elbow to 45 degrees, pen up
-        print("Moving to 45, 45 with pen up")
-        move_servos(45, 45, False, pwm)
+        # Simulate shoulder and elbow at 45 degrees, pen up
+        print("\nSimulating position: 45, 45, pen up")
+        simulate_movement(45, 45, False, leds)
         time.sleep(2)
         
-        # Move shoulder to 180 degrees, elbow to 0 degrees, pen down
-        print("Moving to 180, 0 with pen down")
-        move_servos(180, 0, True, pwm)
+        # Simulate shoulder at 180 degrees, elbow at 0 degrees, pen down
+        print("\nSimulating position: 180, 0, pen down")
+        simulate_movement(180, 0, True, leds)
         time.sleep(2)
         
-        # Move shoulder and elbow to 0 degrees, pen up
-        print("Moving to 0, 0 with pen up")
-        move_servos(0, 0, False, pwm)
+        # Simulate shoulder and elbow at 0 degrees, pen up
+        print("\nSimulating position: 0, 0, pen up")
+        simulate_movement(0, 0, False, leds)
         time.sleep(2)
