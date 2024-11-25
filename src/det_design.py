@@ -74,3 +74,5 @@ if __name__ == "__main__":
         time.sleep(2)
 
 
+
+x_axis_control = 19
