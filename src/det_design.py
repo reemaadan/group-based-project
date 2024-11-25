@@ -43,6 +43,13 @@ def move_servos(shoulder_angle, elbow_angle, pen_position, pwm):
         # Pen up (move servo to position to lift pen)
         pwm["pen_up_down"].duty_u16(servo_min_duty)
 
+def translate(angle:float) ->int:
+    pulse_width = 500+(2500-500)*angle/180
+    duty_cycle = pulse_width/20000
+    duty_u16_value = int(duty_cycle*65535)
+    duty_u16_value = max(2300,min(7500, duty_u16_value))
+    return duty_u16_value
+
 def angle_to_duty_cycle(angle):
     # Map the angle to the corresponding duty cycle within the servo's range
     duty_cycle = int((angle / angle_range) * (servo_max_duty - servo_min_duty) + servo_min_duty)
